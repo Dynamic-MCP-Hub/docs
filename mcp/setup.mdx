@@ -9,13 +9,12 @@ This guide shows you how to connect AI clients to the Sari MCP Server.
 
 Before you begin, ensure you have:
 
-1. **Approved Sari Account** - Your registration must be approved
-2. **Client Credentials** - `client_id` and `api_key` from approval email
-3. **Claude Desktop** - Or another MCP-compatible client
+1. **Approved Sari Account** - Your registration must be approved (see [Quickstart](/quickstart))
+2. **Claude Desktop** - Or another MCP-compatible client
 
 ## Claude Desktop Setup
 
-### Option 1: Using mcp-remote (Recommended)
+### Using mcp-remote
 
 Add to your Claude Desktop config file:
 
@@ -58,28 +57,6 @@ Add to your Claude Desktop config file:
   </Tab>
 </Tabs>
 
-### Option 2: Local Development
-
-For local development, run the MCP server directly:
-
-```json
-{
-  "mcpServers": {
-    "sari-platform": {
-      "command": "python",
-      "args": ["server.py"],
-      "cwd": "/path/to/dynamic-openapi-mcp",
-      "env": {
-        "MCP_TRANSPORT": "stdio",
-        "VECTOR_SEARCH_API_URL": "http://localhost:8080/api/vector/search",
-        "OPENAPI_SPEC_URL": "http://localhost:8080/api/collections",
-        "RATE_LIMIT_ENABLED": "false"
-      }
-    }
-  }
-}
-```
-
 ## Verify Connection
 
 After configuring Claude Desktop:
@@ -95,23 +72,7 @@ Can you search for payment APIs using the Sari platform?
 
 Claude should call the `search_api_collections` tool.
 
-## Using Your Credentials
-
-When Claude calls Sari tools, you'll need to provide your credentials:
-
-```
-Search for "payment processing" APIs using:
-- client_id: client_a1b2c3d4e5f6g7h8
-- api_key: your-api-key-here
-```
-
-<Tip>
-  Store your credentials securely. Never share your API key publicly.
-</Tip>
-
 ## Troubleshooting
-
-### Connection Failed
 
 <AccordionGroup>
   <Accordion title="MCP server not appearing in Claude">
@@ -121,61 +82,12 @@ Search for "payment processing" APIs using:
     4. Check console logs for errors
   </Accordion>
 
-  <Accordion title="Authentication errors">
-    1. Verify your `client_id` and `api_key` are correct
-    2. Check your account is approved (not pending)
-    3. Ensure credentials haven't been regenerated
-  </Accordion>
-
-  <Accordion title="Rate limit exceeded">
-    1. Wait for the retry_after period
-    2. Contact admin for higher limits
-    3. Check for runaway requests in your code
-  </Accordion>
-
   <Accordion title="Collection not found">
     1. Verify you have access to the collection
     2. Check the collection name spelling
     3. Use search to find available collections
   </Accordion>
 </AccordionGroup>
-
-### Debug Mode
-
-Enable debug logging for the MCP server:
-
-```json
-{
-  "mcpServers": {
-    "sari-platform": {
-      "command": "npx",
-      "args": ["-y", "mcp-remote", "https://mcp-server.sari-platform.com/sse"],
-      "env": {
-        "DEBUG": "mcp:*"
-      }
-    }
-  }
-}
-```
-
-## Environment-Specific Endpoints
-
-| Environment | MCP Server URL |
-|-------------|----------------|
-| Production | `https://mcp-server.sari-platform.com/sse` |
-| Staging | `https://mcp-server-staging.sari-platform.com/sse` |
-| Local | `http://localhost:8080/sse` |
-
-## Security Best Practices
-
-<Warning>
-  Never commit your API credentials to version control.
-</Warning>
-
-1. **Rotate credentials** periodically
-2. **Use environment variables** for credentials in automation
-3. **Monitor audit logs** for unexpected activity
-4. **Report compromised credentials** immediately
 
 ## Next Steps
 

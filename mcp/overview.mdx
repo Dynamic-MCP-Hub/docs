@@ -11,7 +11,7 @@ Model Context Protocol (MCP) is an open protocol that standardizes how AI applic
 
 - **Standardized Communication** - Consistent interface for tools and resources
 - **Context Sharing** - Rich context exchange between AI and tools
-- **Security** - Built-in authentication and authorization
+- **Dynamic Capabilities** - Tools and resources can be added or removed on the fly
 
 ## Sari MCP Tools
 
@@ -31,17 +31,9 @@ The Sari MCP Server exposes three tools:
 
 ## How It Works
 
-```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   AI Agent      │────▶│   MCP Server    │────▶│  Target APIs    │
-│ (Claude Desktop)│     │ (Sari Platform) │     │ (Stripe, etc.)  │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
-        │                       │
-        │ 1. Search APIs        │ 2. Vector search
-        │ 3. Get spec           │ 4. Fetch OpenAPI
-        │ 5. Execute            │ 6. Proxy request
-        ▼                       ▼
-```
+<Frame caption="MCP Tool Flow">
+  <img src="/arch/tool-flow.png" alt="MCP Tool Flow" />
+</Frame>
 
 ### Example Workflow
 
@@ -73,36 +65,6 @@ The Sari MCP Server exposes three tools:
     ```
   </Step>
 </Steps>
-
-## Authentication
-
-All MCP tool calls require client credentials:
-
-```
-client_id: client_a1b2c3d4e5f6g7h8
-api_key: <your-api-key>
-```
-
-These credentials are obtained when your registration is approved by an admin.
-
-## Rate Limiting
-
-MCP requests are rate-limited based on your client tier:
-
-| Tier | Limit | Window |
-|------|-------|--------|
-| Default | 1000 requests | 1 hour |
-| Premium | 5000 requests | 1 hour |
-| Custom | Configurable | Configurable |
-
-Rate limit information is returned in error responses:
-
-```json
-{
-  "error": "Rate limit exceeded",
-  "retry_after": 1800
-}
-```
 
 ## Supported AI Clients
 

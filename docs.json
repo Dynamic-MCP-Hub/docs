@@ -17,30 +17,13 @@
             "group": "Getting Started",
             "pages": [
               "index",
-              "quickstart",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Platform",
+            "pages": [
               "architecture"
-            ]
-          },
-          {
-            "group": "Components",
-            "pages": [
-              "components/api-backend",
-              "components/mcp-server",
-              "components/admin-console"
-            ]
-          },
-          {
-            "group": "Configuration",
-            "pages": [
-              "configuration/authentication",
-              "configuration/database",
-              "configuration/environment"
-            ]
-          },
-          {
-            "group": "Deployment",
-            "pages": [
-              "deployment"
             ]
           }
         ]

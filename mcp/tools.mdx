@@ -173,16 +173,6 @@ For endpoints with path parameters like `/users/{id}`:
 
 The `{id}` placeholder will be replaced with `user_123`.
 
-### Authentication
-
-The MCP server automatically injects the collection's configured authentication:
-
-- **API Key** - Added as header or query parameter
-- **Bearer Token** - Added as Authorization header
-- **Basic Auth** - Added as Authorization header
-
-You don't need to provide collection-specific auth credentials.
-
 ---
 
 ## Error Responses
@@ -200,8 +190,6 @@ All tools return errors in a consistent format:
 
 | Error | Cause | Solution |
 |-------|-------|----------|
-| `Authentication failed` | Invalid client_id or api_key | Verify credentials |
-| `Rate limit exceeded` | Too many requests | Wait and retry |
 | `Collection not found` | Invalid collection name | Use search to find correct name |
 | `Access denied` | No permission for collection | Request access from admin |
 | `Invalid request` | Malformed parameters | Check JSON formatting |
@@ -220,7 +208,7 @@ All tools return errors in a consistent format:
   </Accordion>
 
   <Accordion title="Handle errors gracefully">
-    Always check for error responses and handle rate limiting with exponential backoff.
+    Always check for error responses before proceeding with subsequent calls.
   </Accordion>
 
   <Accordion title="Use idempotency keys">
@@ -228,20 +216,3 @@ All tools return errors in a consistent format:
   </Accordion>
 </AccordionGroup>
 
----
-
-## Rate Limiting
-
-All tool calls count against your rate limit:
-
-```json
-{
-  "error": "Rate limit exceeded",
-  "retry_after": 1800,
-  "current_count": 1001,
-  "limit": 1000,
-  "remaining": 0
-}
-```
-
-The `retry_after` value indicates seconds until the limit resets.

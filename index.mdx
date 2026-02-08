@@ -5,19 +5,19 @@ description: "Navigate with Intelligence - Enable your AI to discover and execut
 
 ## Navigate with Intelligence
 
-Sari is a comprehensive API management platform that enables AI agents to discover and execute APIs through natural language. It provides:
+Sari is an API management platform that enables AI agents to discover and execute APIs through natural language. Connect your AI tools to Sari and let them find and call the APIs you need — automatically.
 
-- **Dynamic API Discovery** - Semantic search across your API collections
-- **Secure Access Control** - Fine-grained permissions per client and collection
+- **Dynamic API Discovery** - Search across API collections using natural language
+- **Dynamic Capabilities** - Add and remove capabilities dynamically
 - **MCP Integration** - Native support for Model Context Protocol
 - **Admin Console** - Web-based management interface
 
 <CardGroup cols={2}>
   <Card title="Quickstart" icon="rocket" href="/quickstart">
-    Get up and running with Sari in minutes
+    Register and start using Sari
   </Card>
   <Card title="Architecture" icon="diagram-project" href="/architecture">
-    Understand how Sari components work together
+    Understand how the platform works
   </Card>
   <Card title="API Reference" icon="code" href="/api-reference/introduction">
     Complete REST API documentation
@@ -29,45 +29,15 @@ Sari is a comprehensive API management platform that enables AI agents to discov
 
 ## System Overview
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                          CLIENTS                                 │
-├─────────────────────────────────────────────────────────────────┤
-│   Admin Users         Client Users         AI Agents            │
-│   (Web Console)       (Web Console)        (Claude, etc.)       │
-└────────┬──────────────────┬────────────────────┬────────────────┘
-         │                  │                    │
-         ▼                  ▼                    ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    PRESENTATION LAYER                            │
-├─────────────────────────────────────────────────────────────────┤
-│   Admin Console                    MCP Server                    │
-│   (Firebase Hosting)               (Cloud Run)                   │
-│   React + TypeScript               FastMCP + SSE                 │
-└────────┬──────────────────────────────┬─────────────────────────┘
-         │                              │
-         ▼                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                      SERVICE LAYER                               │
-├─────────────────────────────────────────────────────────────────┤
-│                    API Backend (Cloud Run)                       │
-│   Profiles │ Collections │ Access Control │ Vector Search        │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                       DATA LAYER                                 │
-├─────────────────────────────────────────────────────────────────┤
-│   Cloud SQL (PostgreSQL)    Redis (Memorystore)    Secrets      │
-│   + pgvector                                                     │
-└─────────────────────────────────────────────────────────────────┘
-```
+<Frame caption="Sari Platform Architecture">
+  <img src="/arch/architecture.png" alt="Sari Platform Architecture" />
+</Frame>
 
 ## Key Features
 
 <AccordionGroup>
   <Accordion title="Semantic API Search" icon="magnifying-glass">
-    Use natural language to find relevant APIs. Powered by Vertex AI embeddings and pgvector for fast similarity search.
+    Use natural language to find relevant APIs. Powered by vector embeddings for fast similarity search.
 
     ```
     Query: "payment processing API"
@@ -77,33 +47,26 @@ Sari is a comprehensive API management platform that enables AI agents to discov
     ```
   </Accordion>
 
-  <Accordion title="Dual Authentication" icon="shield-check">
-    Support for both Firebase Authentication (web users) and API Key authentication (AI agents).
-
-    - **Firebase**: `Authorization: Bearer <id_token>`
-    - **API Key**: `X-Client-ID` + `X-API-Key` headers
-  </Accordion>
-
-  <Accordion title="Rate Limiting" icon="gauge">
-    Configurable rate limits with tier-based defaults and per-client overrides. Redis-backed for high performance.
+  <Accordion title="Dynamic Capabilities" icon="shuffle">
+    Add and remove API collections on the fly. Your AI agent always has access to the latest set of capabilities without any reconfiguration.
   </Accordion>
 
   <Accordion title="Audit Logging" icon="clipboard-list">
-    Complete audit trail of all API interactions for compliance and debugging.
+    Complete audit trail of all API interactions for compliance and monitoring.
   </Accordion>
 </AccordionGroup>
 
-## Next Steps
+## Get Started
 
 <Steps>
-  <Step title="Set up the platform">
-    Follow the [quickstart guide](/quickstart) to deploy Sari Platform
+  <Step title="Register on the Admin Console">
+    Sign up at [sari-console.web.app](https://sari-console.web.app) and complete your profile
   </Step>
-  <Step title="Register API collections">
-    Add your OpenAPI specifications via the Admin Console
+  <Step title="Get approved">
+    An admin will review and approve your registration
   </Step>
   <Step title="Connect your AI agent">
-    Configure Claude Desktop or other MCP clients to use Sari
+    Configure Claude Desktop or another MCP client to use Sari — see the [MCP Setup guide](/mcp/setup)
   </Step>
   <Step title="Start making API calls">
     Let your AI discover and execute APIs automatically

@@ -1,173 +1,109 @@
 ---
 title: "Quickstart"
-description: "Get started with Sari Platform in minutes"
+description: "Register for Sari and connect your AI agent in minutes"
 ---
 
-## Prerequisites
+## Overview
 
-Before you begin, ensure you have:
+This guide walks you through the process of getting access to the Sari Platform and connecting your first AI agent.
 
-- Python 3.11+
-- Node.js 18+ (for Admin Console)
-- PostgreSQL database with pgvector extension
-- Redis instance
-- Firebase project (for authentication)
-- Google Cloud Platform account
+<Steps>
+  <Step title="Register on the Admin Console">
+    Go to [sari-console.web.app](https://sari-console.web.app) and click **Sign Up**.
 
-## Quick Start Options
+    Enter your email address and create a password.
+  </Step>
 
-<CardGroup cols={2}>
-  <Card title="Local Development" icon="laptop" href="#local-development">
-    Run Sari locally for development and testing
-  </Card>
-  <Card title="Cloud Deployment" icon="cloud" href="#cloud-deployment">
-    Deploy to Google Cloud Platform
-  </Card>
-</CardGroup>
+  <Step title="Complete your profile">
+    After signing up, fill in your profile details:
 
-## Local Development
+    - **Full Name** — Your name
+    - **Company** — Your organization name
 
-### 1. Clone the Repository
+    Submit the form to create your registration request.
+  </Step>
 
-```bash
-git clone https://github.com/sari-platform/sari.git
-cd sari
-```
+  <Step title="Wait for admin approval">
+    Your registration will be reviewed by a Sari admin. You'll receive an email once your account is approved.
 
-### 2. Set Up the API Backend
+    <Info>
+      Approval typically happens within one business day.
+    </Info>
+  </Step>
 
-```bash
-cd mcp-backend
+  <Step title="Connect to the MCP Server">
+    Add Sari to your Claude Desktop configuration.
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+    <Tabs>
+      <Tab title="macOS">
+        Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
-# Install dependencies
-pip install -r requirements.txt
+        ```json
+        {
+          "mcpServers": {
+            "sari-platform": {
+              "command": "npx",
+              "args": [
+                "-y",
+                "mcp-remote",
+                "https://mcp-server.sari-platform.com/sse"
+              ]
+            }
+          }
+        }
+        ```
+      </Tab>
+      <Tab title="Windows">
+        Edit `%APPDATA%\Claude\claude_desktop_config.json`:
 
-# Configure environment
-cp .env.example .env
-```
+        ```json
+        {
+          "mcpServers": {
+            "sari-platform": {
+              "command": "npx",
+              "args": [
+                "-y",
+                "mcp-remote",
+                "https://mcp-server.sari-platform.com/sse"
+              ]
+            }
+          }
+        }
+        ```
+      </Tab>
+    </Tabs>
 
-Edit `.env` with your configuration:
+    Restart Claude Desktop after saving the config file.
 
-```bash
-# Database
-CLOUD_SQL_CONNECTION_NAME=your-project:region:instance
-DB_NAME=sari_db
-DB_USER=app_user
+    For detailed setup instructions and troubleshooting, see the [MCP Setup guide](/mcp/setup).
+  </Step>
 
-# GCP
-GCP_PROJECT_ID=your-project-id
-USE_SECRET_MANAGER=false  # Set to true in production
+  <Step title="Start using Sari">
+    Open a new conversation in Claude Desktop. You should see **sari-platform** in the MCP tools list.
 
-# Redis (optional for local dev)
-REDIS_HOST=localhost
-REDIS_PORT=6379
+    Try a test query:
 
-# Features
-ENABLE_VECTOR_EMBEDDINGS=true
-ENABLE_EMAIL_NOTIFICATIONS=false
-```
+    ```
+    Search for payment processing APIs
+    ```
 
-Start the backend:
-
-```bash
-uvicorn main:app --reload --port 8080
-```
-
-<Check>
-  API Backend is now running at `http://localhost:8080`
-</Check>
-
-### 3. Set Up the MCP Server
-
-```bash
-cd ../dynamic-openapi-mcp
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Configure environment
-export MCP_TRANSPORT=stdio
-export VECTOR_SEARCH_API_URL=http://localhost:8080/api/vector/search
-export OPENAPI_SPEC_URL=http://localhost:8080/api/collections
-export RATE_LIMIT_ENABLED=false
-```
-
-### 4. Set Up the Admin Console
-
-```bash
-cd ../api-vault-guard
-
-# Install dependencies
-npm install
-
-# Configure environment
-cp .env.example .env
-```
-
-Edit `.env`:
-
-```bash
-VITE_API_URL=http://localhost:8080
-VITE_FIREBASE_API_KEY=your-firebase-api-key
-VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your-project-id
-```
-
-Start the dev server:
-
-```bash
-npm run dev
-```
-
-<Check>
-  Admin Console is now running at `http://localhost:5173`
-</Check>
-
-## Cloud Deployment
-
-For production deployment to Google Cloud Platform, see the [Deployment Guide](/deployment).
-
-## Verify Installation
-
-### Health Checks
-
-```bash
-# API Backend
-curl http://localhost:8080/health
-# Expected: {"status": "healthy", "service": "mcp-backend"}
-
-# Vector Search
-curl http://localhost:8080/api/vector/health
-# Expected: {"status": "healthy", "embedding_enabled": true}
-```
-
-### Test Authentication
-
-1. Open the Admin Console at `http://localhost:5173`
-2. Sign up for a new account
-3. Check the database for the pending registration
+    Claude will call the `search_api_collections` tool and return matching APIs.
+  </Step>
+</Steps>
 
 ## Next Steps
 
 <CardGroup cols={2}>
   <Card title="Architecture" icon="diagram-project" href="/architecture">
-    Understand the system architecture
+    Understand how the platform works
   </Card>
-  <Card title="Authentication" icon="key" href="/configuration/authentication">
-    Configure authentication methods
+  <Card title="MCP Tools" icon="wrench" href="/mcp/tools">
+    Learn about all available MCP tools
   </Card>
-  <Card title="Add Collections" icon="folder-plus" href="/api-reference/collections/create">
-    Register your first API collection
+  <Card title="MCP Setup" icon="gear" href="/mcp/setup">
+    Detailed setup and troubleshooting
   </Card>
-  <Card title="Connect AI Agent" icon="robot" href="/mcp/setup">
-    Set up Claude Desktop integration
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Explore the full REST API
   </Card>
 </CardGroup>

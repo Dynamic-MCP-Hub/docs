@@ -1,198 +1,56 @@
 ---
 title: "Architecture"
-description: "System architecture and component overview"
+description: "How the Sari Platform works"
 ---
 
 ## System Overview
 
-Sari Platform follows a microservices architecture with three main components communicating through REST APIs and sharing data via PostgreSQL and Redis.
+Sari Platform connects three types of users to a unified API management layer:
 
-## Component Diagram
+- **Admin Users** manage collections, approve registrations, and configure access via the Admin Console
+- **Client Users** register for access through the Admin Console
+- **AI Agents** (Claude Desktop, etc.) discover and execute APIs through the MCP Server
 
-```
-┌────────────────────────────────────────────────────────────────────────────┐
-│                              CLIENTS                                        │
-├────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│   ┌─────────────┐    ┌─────────────┐    ┌─────────────────────────────┐   │
-│   │   Admin     │    │   Client    │    │      AI Agents              │   │
-│   │   Users     │    │   Users     │    │  (Claude Desktop, etc.)     │   │
-│   └──────┬──────┘    └──────┬──────┘    └─────────────┬───────────────┘   │
-│          │                  │                         │                    │
-└──────────┼──────────────────┼─────────────────────────┼────────────────────┘
-           │                  │                         │
-           ▼                  ▼                         ▼
-┌────────────────────────────────────────────────────────────────────────────┐
-│                           PRESENTATION LAYER                                │
-├────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│   ┌─────────────────────────────────┐    ┌─────────────────────────────┐   │
-│   │        Admin Console            │    │        MCP Server           │   │
-│   │       (Firebase Hosting)        │    │       (Cloud Run)           │   │
-│   │                                 │    │                             │   │
-│   │  - React 18 + TypeScript        │    │  - FastMCP Framework        │   │
-│   │  - Firebase Auth SDK            │    │  - SSE Transport            │   │
-│   │  - TanStack Query               │    │  - Rate Limiting            │   │
-│   │  - shadcn/ui Components         │    │  - Vector Search Client     │   │
-│   └────────────────┬────────────────┘    └──────────────┬──────────────┘   │
-│                    │                                    │                   │
-└────────────────────┼────────────────────────────────────┼───────────────────┘
-                     │                                    │
-                     ▼                                    ▼
-┌────────────────────────────────────────────────────────────────────────────┐
-│                            SERVICE LAYER                                    │
-├────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│   ┌─────────────────────────────────────────────────────────────────────┐  │
-│   │                       API Backend (Cloud Run)                        │  │
-│   │                                                                      │  │
-│   │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐  │  │
-│   │  │ Profiles │ │Collection│ │  Access  │ │  Audit   │ │  Rate    │  │  │
-│   │  │  Route   │ │  Route   │ │ Control  │ │  Route   │ │  Limits  │  │  │
-│   │  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘  │  │
-│   │                                                                      │  │
-│   │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐               │  │
-│   │  │  Vector  │ │  Email   │ │Embeddings│ │  Pub/Sub │               │  │
-│   │  │  Search  │ │ Service  │ │ Service  │ │Publisher │               │  │
-│   │  └──────────┘ └──────────┘ └──────────┘ └──────────┘               │  │
-│   │                                                                      │  │
-│   └─────────────────────────────────────────────────────────────────────┘  │
-│                                                                             │
-└─────────────────────────────────┬───────────────────────────────────────────┘
-                                  │
-                                  ▼
-┌────────────────────────────────────────────────────────────────────────────┐
-│                            DATA LAYER                                       │
-├────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│   ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐        │
-│   │   Cloud SQL      │  │ Cloud Memorystore│  │  Secret Manager  │        │
-│   │   (PostgreSQL)   │  │     (Redis)      │  │                  │        │
-│   │                  │  │                  │  │                  │        │
-│   │  - profiles      │  │  - Collection    │  │  - db-password   │        │
-│   │  - api_collections│ │    cache         │  │  - redis-auth    │        │
-│   │  - client_access │  │  - Rate limit    │  │  - firebase-creds│        │
-│   │  - audit_logs    │  │    counters      │  │  - api-keys      │        │
-│   │  - vector_collect│  │  - Session data  │  │                  │        │
-│   │  - rate_limits   │  │                  │  │                  │        │
-│   └──────────────────┘  └──────────────────┘  └──────────────────┘        │
-│                                                                             │
-└────────────────────────────────────────────────────────────────────────────┘
-```
+<Frame caption="Sari Platform Architecture">
+  <img src="/arch/architecture.png" alt="Sari Platform Architecture" />
+</Frame>
 
-## Data Flows
+## How It Works
 
-### Admin User Flow
+### Registration and Approval
 
-The admin workflow for managing user registrations:
+1. You sign up on the [Admin Console](https://sari-console.web.app) and fill in your profile
+2. An admin reviews and approves your registration
+3. You can now connect your AI agent to the MCP Server
 
-1. Admin logs in via Firebase Authentication
-2. API Backend verifies the token
-3. Admin views pending registration requests
-4. Admin approves a client
-5. Backend generates credentials (client_id + client_secret)
-6. Credentials are emailed to the user via Resend
+### AI Agent Workflow
 
-### AI Agent Flow
+Once approved, your AI agent can discover and call APIs:
 
-The workflow for AI agents discovering and executing APIs:
-
-1. Agent calls `search_api_collections` with a natural language query
-2. MCP Server authenticates and performs vector search
-3. Results are returned with similarity scores
-4. Agent calls `execute_api` with the chosen collection
-5. MCP Server fetches collection metadata and auth config
-6. Request is made to the target API
-7. Response is returned to the agent
-
-## Component Responsibilities
-
-### Admin Console
-
-| Responsibility | Implementation |
-|----------------|----------------|
-| User Authentication | Firebase Auth SDK |
-| Admin Dashboard | React + TanStack Query |
-| Client Management | CRUD via REST API |
-| Collection Management | CRUD + OpenAPI spec viewer |
-| Access Control | Grant/revoke per client-collection |
-| Rate Limit Config | Tier and override management |
-| Audit Log Viewer | Paginated log display |
-
-### API Backend
-
-| Responsibility | Implementation |
-|----------------|----------------|
-| REST API | FastAPI framework |
-| Authentication | Firebase token verification |
-| Authorization | Role-based (admin/client) |
-| Data Persistence | PostgreSQL via pg8000 |
-| Caching | Redis with TTL-based invalidation |
-| Vector Search | pgvector cosine similarity |
-| Email Notifications | Resend API |
-| Event Publishing | Cloud Pub/Sub |
-
-### MCP Server
-
-| Responsibility | Implementation |
-|----------------|----------------|
-| MCP Protocol | FastMCP framework |
-| Transport | SSE (Server-Sent Events) |
-| Tool Exposure | search, get_spec, execute |
-| Rate Limiting | Redis counter with fixed window |
-| Caching | Redis for collection lookups |
-| API Execution | httpx async client |
-
-## Caching Strategy
-
-| Cache Key Pattern | TTL | Purpose |
-|-------------------|-----|---------|
-| `collections_admin` | 1 hour | Admin collection list |
-| `collections_client:{id}` | 1 hour | Client-specific collection list |
-| `collection:{id}` | 24 hours | Single collection details |
-| `collection_name_map:{name}` | 24 hours | Name to ID mapping (MCP) |
-| `rate_limit:config:{client_id}` | 24 hours | Rate limit config |
-| `rate_limit:{tier}:{id}:{window}` | 2x window | Request counter |
-
-## Error Handling
-
-| HTTP Status | Meaning | Example |
-|-------------|---------|---------|
-| 400 | Bad Request | Invalid input data |
-| 401 | Unauthorized | Invalid/expired token |
-| 403 | Forbidden | Insufficient permissions |
-| 404 | Not Found | Resource doesn't exist |
-| 409 | Conflict | Duplicate resource |
-| 429 | Too Many Requests | Rate limit exceeded |
-| 500 | Internal Error | Server-side failure |
-
-## Security Layers
+<Frame caption="MCP Tool Flow">
+  <img src="/arch/tool-flow.png" alt="MCP Tool Flow" />
+</Frame>
 
 <Steps>
-  <Step title="Network">
-    VPC with private IP for Cloud SQL
+  <Step title="Search for APIs">
+    Your agent calls `search_api_collections` with a natural language query (e.g., "payment processing"). The platform performs a vector search and returns matching collections with similarity scores.
   </Step>
-  <Step title="Transport">
-    HTTPS/TLS for all communications
+  <Step title="Get the API spec">
+    Your agent calls `get_openapi_spec` to retrieve the full OpenAPI specification for a collection. This tells the agent what endpoints, parameters, and responses are available.
   </Step>
-  <Step title="Authentication">
-    Firebase tokens (frontend), API keys (agents)
-  </Step>
-  <Step title="Authorization">
-    Role-based access control
-  </Step>
-  <Step title="Secrets">
-    GCP Secret Manager for credentials
-  </Step>
-  <Step title="Data">
-    bcrypt hashing for client secrets
+  <Step title="Execute API calls">
+    Your agent calls `execute_api` with the collection name, HTTP method, endpoint, and any required parameters. The platform proxies the request to the target API and returns the response.
   </Step>
 </Steps>
 
-## Scalability
+## Key Components
 
-1. **Stateless Services**: Both API Backend and MCP Server are stateless, enabling horizontal scaling via Cloud Run
-2. **Connection Pooling**: Single persistent database connection per instance
-3. **Redis Caching**: Reduces database load for frequently accessed data
-4. **Vector Indexing**: HNSW index on pgvector for efficient similarity search
-5. **Async Operations**: Non-blocking I/O for external service calls
+| Component | What you interact with | Purpose |
+|-----------|----------------------|---------|
+| **Admin Console** | [sari-console.web.app](https://sari-console.web.app) | Register, view your profile, manage your account |
+| **MCP Server** | Via Claude Desktop or other MCP clients | Discover and execute APIs through your AI agent |
+| **API Backend** | Indirectly (powers both of the above) | Handles access control, search, and API execution |
+
+## Dynamic Capabilities
+
+API collections can be added and removed at any time by your admin. When a new collection is registered, your AI agent can immediately discover and use it — no reconfiguration needed. Likewise, when a collection is removed, it stops appearing in search results automatically.
