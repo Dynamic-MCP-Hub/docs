@@ -1,0 +1,55 @@
+---
+title: "List Client's Collections"
+api: "GET /api/access/clients/{client_profile_id}/collections"
+description: "List all collections and access status for a client (admin only)"
+---
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token: `Bearer <admin_token>`
+</ParamField>
+
+## Path Parameters
+
+<ParamField path="client_profile_id" type="string" required>
+  The client's profile ID (UUID)
+</ParamField>
+
+### Example Request
+
+```bash
+curl https://api.sari-platform.com/api/access/clients/550e8400-e29b-41d4-a716-446655440000/collections \
+  -H "Authorization: Bearer <admin_token>"
+```
+
+## Response
+
+Returns all collections with access status for the specified client.
+
+```json
+[
+  {
+    "id": "collection-uuid-1",
+    "name": "Stripe API",
+    "description": "Payment processing",
+    "has_access": true,
+    "granted_at": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": "collection-uuid-2",
+    "name": "PayPal API",
+    "description": "Online payments",
+    "has_access": false,
+    "granted_at": null
+  }
+]
+```
+
+## Errors
+
+| Status | Description |
+|--------|-------------|
+| 401 | Invalid or expired token |
+| 403 | Admin access required |
+| 404 | Client not found |

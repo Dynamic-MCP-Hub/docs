@@ -1,0 +1,93 @@
+---
+title: "Get Effective Rate Limit"
+api: "GET /api/rate-limits/effective/{client_id}"
+description: "Get the effective rate limit for a client"
+---
+
+## Authentication
+
+Supports both Firebase and API Key authentication.
+
+## Path Parameters
+
+<ParamField path="client_id" type="string" required>
+  The client identifier (e.g., `client_abc123`)
+</ParamField>
+
+### Example Request
+
+```bash
+curl https://api.sari-platform.com/api/rate-limits/effective/client_abc123 \
+  -H "X-Client-ID: client_abc123" \
+  -H "X-API-Key: <api_key>"
+```
+
+## Response
+
+<ResponseField name="source" type="string">
+  Where the limit comes from: `override`, `tier`, or `none`
+</ResponseField>
+
+<ResponseField name="client_id" type="string">
+  Client identifier
+</ResponseField>
+
+<ResponseField name="allowed_limit" type="integer">
+  Maximum requests per window
+</ResponseField>
+
+<ResponseField name="window_seconds" type="integer">
+  Time window in seconds
+</ResponseField>
+
+<ResponseField name="config_id" type="integer">
+  Override ID (if source is override)
+</ResponseField>
+
+### Example Response (Override)
+
+```json
+{
+  "source": "override",
+  "client_id": "client_abc123",
+  "allowed_limit": 5000,
+  "window_seconds": 3600,
+  "config_id": 1
+}
+```
+
+### Example Response (Tier)
+
+```json
+{
+  "source": "tier",
+  "client_id": "client_abc123",
+  "allowed_limit": 1000,
+  "window_seconds": 3600,
+  "config_id": null
+}
+```
+
+### Example Response (No Config)
+
+```json
+{
+  "source": "none",
+  "client_id": "client_abc123",
+  "allowed_limit": null,
+  "window_seconds": null,
+  "config_id": null
+}
+```
+
+## Resolution Order
+
+1. **Override** - Client-specific override (if active)
+2. **Tier** - Default tier configuration (if active)
+3. **None** - No rate limit configured
+
+## Errors
+
+| Status | Description |
+|--------|-------------|
+| 401 | Invalid authentication |

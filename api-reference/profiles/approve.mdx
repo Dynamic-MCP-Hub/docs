@@ -1,0 +1,72 @@
+---
+title: "Approve Registration"
+api: "POST /api/profiles/{user_id}/approve"
+description: "Approve a pending user registration (admin only)"
+---
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token: `Bearer <admin_token>`
+</ParamField>
+
+<Note>
+  This endpoint requires admin privileges.
+</Note>
+
+## Path Parameters
+
+<ParamField path="user_id" type="string" required>
+  The user's profile ID (UUID)
+</ParamField>
+
+### Example Request
+
+```bash
+curl -X POST https://api.sari-platform.com/api/profiles/550e8400-e29b-41d4-a716-446655440000/approve \
+  -H "Authorization: Bearer <admin_token>"
+```
+
+## Response
+
+<ResponseField name="message" type="string">
+  Success message
+</ResponseField>
+
+<ResponseField name="client_id" type="string">
+  Generated client identifier for API access
+</ResponseField>
+
+<ResponseField name="client_secret" type="string">
+  Generated API secret (only shown once!)
+</ResponseField>
+
+### Example Response
+
+```json
+{
+  "message": "User approved successfully",
+  "client_id": "client_abc123def456",
+  "client_secret": "base64-url-safe-secret-32-chars"
+}
+```
+
+<Warning>
+  The `client_secret` is only returned once and cannot be retrieved later. Store it securely.
+</Warning>
+
+## What Happens
+
+1. **Credentials Generated** - A unique `client_id` and `client_secret` are created
+2. **Secret Hashed** - The secret is hashed with bcrypt before storage
+3. **Status Updated** - Profile status changes to `approved`
+4. **Email Sent** - Credentials are emailed to the user via Resend
+
+## Errors
+
+| Status | Description |
+|--------|-------------|
+| 401 | Invalid or expired token |
+| 403 | Admin access required |
+| 404 | User not found |
+| 409 | User already approved or rejected |

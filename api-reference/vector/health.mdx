@@ -1,0 +1,65 @@
+---
+title: "Vector Health Check"
+api: "GET /api/vector/health"
+description: "Check the health of the vector search service"
+---
+
+## Authentication
+
+No authentication required.
+
+### Example Request
+
+```bash
+curl https://api.sari-platform.com/api/vector/health
+```
+
+## Response
+
+<ResponseField name="status" type="string">
+  Service status: `healthy` or `unhealthy`
+</ResponseField>
+
+<ResponseField name="embedding_enabled" type="boolean">
+  Whether Vertex AI embeddings are enabled
+</ResponseField>
+
+<ResponseField name="vertex_ai_initialized" type="boolean">
+  Whether Vertex AI client is initialized
+</ResponseField>
+
+<ResponseField name="vector_collections_count" type="integer">
+  Number of collections with embeddings
+</ResponseField>
+
+### Example Response
+
+```json
+{
+  "status": "healthy",
+  "embedding_enabled": true,
+  "vertex_ai_initialized": true,
+  "vector_collections_count": 15
+}
+```
+
+## Health Indicators
+
+| Indicator | Healthy When |
+|-----------|--------------|
+| `status` | All checks pass |
+| `embedding_enabled` | `ENABLE_VECTOR_EMBEDDINGS=true` |
+| `vertex_ai_initialized` | Vertex AI SDK connected |
+| `vector_collections_count` | > 0 collections indexed |
+
+## Unhealthy Response
+
+```json
+{
+  "status": "unhealthy",
+  "embedding_enabled": true,
+  "vertex_ai_initialized": false,
+  "vector_collections_count": 0,
+  "error": "Failed to connect to Vertex AI"
+}
+```

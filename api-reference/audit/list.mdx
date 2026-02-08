@@ -1,0 +1,83 @@
+---
+title: "List Audit Logs"
+api: "GET /api/audit/"
+description: "List audit logs with pagination (admin only)"
+---
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token: `Bearer <admin_token>`
+</ParamField>
+
+## Query Parameters
+
+<ParamField query="page" type="integer" default="1">
+  Page number
+</ParamField>
+
+<ParamField query="pageSize" type="integer" default="20">
+  Items per page (max 100)
+</ParamField>
+
+### Example Request
+
+```bash
+curl "https://api.sari-platform.com/api/audit/?page=1&pageSize=20" \
+  -H "Authorization: Bearer <admin_token>"
+```
+
+## Response
+
+<ResponseField name="data" type="array">
+  Array of audit log entries
+</ResponseField>
+
+<ResponseField name="total" type="integer">
+  Total number of logs
+</ResponseField>
+
+<ResponseField name="page" type="integer">
+  Current page
+</ResponseField>
+
+<ResponseField name="pageSize" type="integer">
+  Items per page
+</ResponseField>
+
+<ResponseField name="totalPages" type="integer">
+  Total pages available
+</ResponseField>
+
+### Example Response
+
+```json
+{
+  "data": [
+    {
+      "id": "log-uuid",
+      "message": {
+        "action": "api_call",
+        "client_id": "client_abc",
+        "collection_id": "collection-uuid",
+        "method": "GET",
+        "endpoint": "/users",
+        "status_code": 200,
+        "duration_ms": 150
+      },
+      "timestamp": "2024-01-15T10:00:00Z"
+    }
+  ],
+  "total": 150,
+  "page": 1,
+  "pageSize": 20,
+  "totalPages": 8
+}
+```
+
+## Errors
+
+| Status | Description |
+|--------|-------------|
+| 401 | Invalid or expired token |
+| 403 | Admin access required |

@@ -1,0 +1,127 @@
+---
+title: "MCP Overview"
+description: "Model Context Protocol integration for AI agents"
+---
+
+The Sari Platform exposes its API capabilities through the Model Context Protocol (MCP), enabling AI agents like Claude Desktop to discover and execute APIs dynamically.
+
+## What is MCP?
+
+Model Context Protocol (MCP) is an open protocol that standardizes how AI applications connect to external data sources and tools. It provides:
+
+- **Standardized Communication** - Consistent interface for tools and resources
+- **Context Sharing** - Rich context exchange between AI and tools
+- **Security** - Built-in authentication and authorization
+
+## Sari MCP Tools
+
+The Sari MCP Server exposes three tools:
+
+<CardGroup cols={3}>
+  <Card title="search_api_collections" icon="magnifying-glass">
+    Search for APIs using natural language queries
+  </Card>
+  <Card title="get_openapi_spec" icon="file-code">
+    Retrieve OpenAPI specifications for a collection
+  </Card>
+  <Card title="execute_api" icon="play">
+    Execute API requests against registered collections
+  </Card>
+</CardGroup>
+
+## How It Works
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   AI Agent      │────▶│   MCP Server    │────▶│  Target APIs    │
+│ (Claude Desktop)│     │ (Sari Platform) │     │ (Stripe, etc.)  │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+        │                       │
+        │ 1. Search APIs        │ 2. Vector search
+        │ 3. Get spec           │ 4. Fetch OpenAPI
+        │ 5. Execute            │ 6. Proxy request
+        ▼                       ▼
+```
+
+### Example Workflow
+
+<Steps>
+  <Step title="User asks about payments">
+    "I need to process a credit card payment"
+  </Step>
+  <Step title="AI searches for relevant APIs">
+    ```
+    search_api_collections("payment processing credit card")
+    → Stripe Payment API (0.89)
+    → PayPal Checkout API (0.82)
+    ```
+  </Step>
+  <Step title="AI retrieves the API spec">
+    ```
+    get_openapi_spec("Stripe Payment API")
+    → Full OpenAPI specification
+    ```
+  </Step>
+  <Step title="AI executes the API call">
+    ```
+    execute_api(
+      collection_name="Stripe Payment API",
+      method="POST",
+      endpoint="/v1/charges",
+      request_data='{"amount": 1000, "currency": "usd"}'
+    )
+    ```
+  </Step>
+</Steps>
+
+## Authentication
+
+All MCP tool calls require client credentials:
+
+```
+client_id: client_a1b2c3d4e5f6g7h8
+api_key: <your-api-key>
+```
+
+These credentials are obtained when your registration is approved by an admin.
+
+## Rate Limiting
+
+MCP requests are rate-limited based on your client tier:
+
+| Tier | Limit | Window |
+|------|-------|--------|
+| Default | 1000 requests | 1 hour |
+| Premium | 5000 requests | 1 hour |
+| Custom | Configurable | Configurable |
+
+Rate limit information is returned in error responses:
+
+```json
+{
+  "error": "Rate limit exceeded",
+  "retry_after": 1800
+}
+```
+
+## Supported AI Clients
+
+<CardGroup cols={2}>
+  <Card title="Claude Desktop" icon="desktop">
+    Full support via SSE transport or mcp-remote
+  </Card>
+  <Card title="Other MCP Clients" icon="plug">
+    Any MCP-compatible client can connect
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Setup Guide" icon="gear" href="/mcp/setup">
+    Configure your AI client to connect to Sari
+  </Card>
+  <Card title="Tools Reference" icon="wrench" href="/mcp/tools">
+    Detailed documentation for each MCP tool
+  </Card>
+</CardGroup>

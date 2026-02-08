@@ -1,0 +1,37 @@
+---
+title: "Get Active Tiers"
+api: "GET /api/rate-limits/tiers/active/all"
+description: "Get all active rate limit tiers"
+---
+
+## Authentication
+
+Supports both Firebase and API Key authentication.
+
+### Example Request
+
+```bash
+curl https://api.sari-platform.com/api/rate-limits/tiers/active/all \
+  -H "Authorization: Bearer <token>"
+```
+
+## Response
+
+Returns only active tier configurations.
+
+```json
+[
+  {
+    "tier": "client",
+    "allowed_limit": 1000,
+    "window_seconds": 3600,
+    "is_active": true
+  }
+]
+```
+
+## Errors
+
+| Status | Description |
+|--------|-------------|
+| 401 | Invalid authentication |

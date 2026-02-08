@@ -1,0 +1,44 @@
+---
+title: "Delete Tier"
+api: "DELETE /api/rate-limits/tiers/{tier}"
+description: "Delete a rate limit tier (admin only)"
+---
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token: `Bearer <admin_token>`
+</ParamField>
+
+## Path Parameters
+
+<ParamField path="tier" type="string" required>
+  Tier name to delete
+</ParamField>
+
+### Example Request
+
+```bash
+curl -X DELETE https://api.sari-platform.com/api/rate-limits/tiers/premium \
+  -H "Authorization: Bearer <admin_token>"
+```
+
+## Response
+
+```json
+{
+  "message": "Tier deleted successfully"
+}
+```
+
+<Warning>
+  Deleting a tier affects all clients using that tier. They will fall back to default limits.
+</Warning>
+
+## Errors
+
+| Status | Description |
+|--------|-------------|
+| 401 | Invalid or expired token |
+| 403 | Admin access required |
+| 404 | Tier not found |

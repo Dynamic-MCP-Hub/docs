@@ -1,0 +1,60 @@
+---
+title: "Reject Registration"
+api: "POST /api/profiles/{user_id}/reject"
+description: "Reject a pending user registration (admin only)"
+---
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token: `Bearer <admin_token>`
+</ParamField>
+
+<Note>
+  This endpoint requires admin privileges.
+</Note>
+
+## Path Parameters
+
+<ParamField path="user_id" type="string" required>
+  The user's profile ID (UUID)
+</ParamField>
+
+## Request Body
+
+<ParamField body="reason" type="string">
+  Optional rejection reason to include in notification email
+</ParamField>
+
+### Example Request
+
+```bash
+curl -X POST https://api.sari-platform.com/api/profiles/550e8400-e29b-41d4-a716-446655440000/reject \
+  -H "Authorization: Bearer <admin_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "reason": "Company verification failed"
+  }'
+```
+
+## Response
+
+```json
+{
+  "message": "User rejected"
+}
+```
+
+## What Happens
+
+1. **Status Updated** - Profile status changes to `rejected`
+2. **Email Sent** - Rejection notification sent to user (if email enabled)
+
+## Errors
+
+| Status | Description |
+|--------|-------------|
+| 401 | Invalid or expired token |
+| 403 | Admin access required |
+| 404 | User not found |
+| 409 | User already approved or rejected |

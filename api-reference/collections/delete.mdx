@@ -1,0 +1,55 @@
+---
+title: "Delete Collection"
+api: "DELETE /api/collections/{collection_id}"
+description: "Delete an API collection (admin only)"
+---
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token: `Bearer <admin_token>`
+</ParamField>
+
+<Note>
+  This endpoint requires admin privileges.
+</Note>
+
+## Path Parameters
+
+<ParamField path="collection_id" type="string" required>
+  Collection ID (UUID)
+</ParamField>
+
+### Example Request
+
+```bash
+curl -X DELETE https://api.sari-platform.com/api/collections/550e8400-e29b-41d4-a716-446655440000 \
+  -H "Authorization: Bearer <admin_token>"
+```
+
+## Response
+
+```json
+{
+  "message": "Collection deleted successfully"
+}
+```
+
+## What Happens
+
+1. **Collection Deleted** - Removed from database
+2. **Access Removed** - All client access grants deleted (cascade)
+3. **Vector Deleted** - Embedding removed from Vector_Collections
+4. **Cache Invalidated** - All related caches cleared
+
+<Warning>
+  This action is irreversible. All client access will be revoked.
+</Warning>
+
+## Errors
+
+| Status | Description |
+|--------|-------------|
+| 401 | Invalid or expired token |
+| 403 | Admin access required |
+| 404 | Collection not found |

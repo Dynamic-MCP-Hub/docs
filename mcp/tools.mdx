@@ -1,0 +1,247 @@
+---
+title: "MCP Tools Reference"
+description: "Complete reference for Sari MCP tools"
+---
+
+The Sari MCP Server exposes three tools for API discovery and execution.
+
+## search_api_collections
+
+Search for API collections using natural language semantic search.
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `query_key_word` | string | Yes | Natural language search query |
+| `client_id` | string | Yes | Your client identifier |
+| `api_key` | string | Yes | Your API secret |
+
+### Response
+
+Returns a formatted string with matching collections and similarity scores.
+
+### Example
+
+**Input:**
+```json
+{
+  "query_key_word": "payment processing credit card",
+  "client_id": "client_a1b2c3d4",
+  "api_key": "your-api-key"
+}
+```
+
+**Output:**
+```
+Found 3 matching API collections:
+
+1. Stripe Payment API (similarity: 0.89)
+   Payment processing and subscription management
+
+2. PayPal Checkout API (similarity: 0.82)
+   Online payment processing
+
+3. Square Payments API (similarity: 0.75)
+   Point of sale and online payments
+```
+
+### Notes
+
+- Results are filtered to collections you have access to
+- Similarity scores range from 0 to 1 (higher is better)
+- Maximum 10 results returned by default
+
+---
+
+## get_openapi_spec
+
+Retrieve the OpenAPI specification for a collection.
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `collection_name` | string | Yes | Name of the collection (from search results) |
+| `client_id` | string | Yes | Your client identifier |
+| `api_key` | string | Yes | Your API secret |
+
+### Response
+
+Returns the OpenAPI specification as a JSON string.
+
+### Example
+
+**Input:**
+```json
+{
+  "collection_name": "Stripe Payment API",
+  "client_id": "client_a1b2c3d4",
+  "api_key": "your-api-key"
+}
+```
+
+**Output:**
+```json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Stripe Payment API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {"url": "https://api.stripe.com"}
+  ],
+  "paths": {
+    "/v1/charges": {
+      "post": {
+        "summary": "Create a charge",
+        "parameters": [...],
+        "requestBody": {...}
+      }
+    }
+  }
+}
+```
+
+### Notes
+
+- Collection name matching is case-insensitive
+- The full OpenAPI spec is returned, including all endpoints
+- Use this to understand available operations before executing
+
+---
+
+## execute_api
+
+Execute an API request against a registered collection.
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `collection_name` | string | Yes | Target collection name |
+| `method` | string | Yes | HTTP method (GET, POST, PUT, DELETE, PATCH) |
+| `endpoint` | string | Yes | API endpoint path |
+| `headers` | string | No | JSON string of additional headers |
+| `query_params` | string | No | JSON string of query parameters |
+| `path_params` | string | No | JSON string of path parameters |
+| `request_data` | string | No | JSON string of request body |
+| `client_id` | string | Yes | Your client identifier |
+| `api_key` | string | Yes | Your API secret |
+
+### Response
+
+Returns the API response as a JSON string.
+
+### Example
+
+**Input:**
+```json
+{
+  "collection_name": "Stripe Payment API",
+  "method": "POST",
+  "endpoint": "/v1/charges",
+  "headers": "{\"Idempotency-Key\": \"unique-key-123\"}",
+  "request_data": "{\"amount\": 1000, \"currency\": \"usd\", \"source\": \"tok_visa\"}",
+  "client_id": "client_a1b2c3d4",
+  "api_key": "your-api-key"
+}
+```
+
+**Output:**
+```json
+{
+  "id": "ch_1234567890",
+  "object": "charge",
+  "amount": 1000,
+  "currency": "usd",
+  "status": "succeeded"
+}
+```
+
+### Path Parameters
+
+For endpoints with path parameters like `/users/{id}`:
+
+```json
+{
+  "endpoint": "/users/{id}",
+  "path_params": "{\"id\": \"user_123\"}"
+}
+```
+
+The `{id}` placeholder will be replaced with `user_123`.
+
+### Authentication
+
+The MCP server automatically injects the collection's configured authentication:
+
+- **API Key** - Added as header or query parameter
+- **Bearer Token** - Added as Authorization header
+- **Basic Auth** - Added as Authorization header
+
+You don't need to provide collection-specific auth credentials.
+
+---
+
+## Error Responses
+
+All tools return errors in a consistent format:
+
+```json
+{
+  "error": "Error message",
+  "details": "Additional information"
+}
+```
+
+### Common Errors
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `Authentication failed` | Invalid client_id or api_key | Verify credentials |
+| `Rate limit exceeded` | Too many requests | Wait and retry |
+| `Collection not found` | Invalid collection name | Use search to find correct name |
+| `Access denied` | No permission for collection | Request access from admin |
+| `Invalid request` | Malformed parameters | Check JSON formatting |
+
+---
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Search before executing">
+    Always use `search_api_collections` first to find the correct collection name and verify you have access.
+  </Accordion>
+
+  <Accordion title="Check the spec">
+    Use `get_openapi_spec` to understand available endpoints, required parameters, and expected responses before executing.
+  </Accordion>
+
+  <Accordion title="Handle errors gracefully">
+    Always check for error responses and handle rate limiting with exponential backoff.
+  </Accordion>
+
+  <Accordion title="Use idempotency keys">
+    For POST requests that create resources, include an idempotency key in headers to prevent duplicates.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Rate Limiting
+
+All tool calls count against your rate limit:
+
+```json
+{
+  "error": "Rate limit exceeded",
+  "retry_after": 1800,
+  "current_count": 1001,
+  "limit": 1000,
+  "remaining": 0
+}
+```
+
+The `retry_after` value indicates seconds until the limit resets.

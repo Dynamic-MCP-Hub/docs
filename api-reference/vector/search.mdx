@@ -1,0 +1,90 @@
+---
+title: "Semantic Search"
+api: "POST /api/vector/search"
+description: "Search for API collections using natural language"
+---
+
+## Authentication
+
+Supports both Firebase and API Key authentication.
+
+## Request Body
+
+<ParamField body="query" type="string" required>
+  Natural language search query
+</ParamField>
+
+<ParamField body="k_limit" type="integer" default="10">
+  Maximum number of results (1-100)
+</ParamField>
+
+### Example Request
+
+```bash
+curl -X POST https://api.sari-platform.com/api/vector/search \
+  -H "X-Client-ID: client_abc123" \
+  -H "X-API-Key: <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "payment processing API",
+    "k_limit": 10
+  }'
+```
+
+## Response
+
+Returns matching collections ordered by similarity score.
+
+<ResponseField name="collection_id" type="string">
+  Collection UUID
+</ResponseField>
+
+<ResponseField name="collection_name" type="string">
+  Collection display name
+</ResponseField>
+
+<ResponseField name="similarity_score" type="number">
+  Cosine similarity score (0-1, higher is better)
+</ResponseField>
+
+### Example Response
+
+```json
+[
+  {
+    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
+    "collection_name": "Stripe Payment API",
+    "similarity_score": 0.89
+  },
+  {
+    "collection_id": "550e8400-e29b-41d4-a716-446655440001",
+    "collection_name": "PayPal Checkout API",
+    "similarity_score": 0.75
+  },
+  {
+    "collection_id": "550e8400-e29b-41d4-a716-446655440002",
+    "collection_name": "Square Payments API",
+    "similarity_score": 0.72
+  }
+]
+```
+
+## How It Works
+
+1. **Query Embedding** - Your query is converted to a 768-dimensional vector using Vertex AI
+2. **Similarity Search** - pgvector performs cosine similarity search against all collection embeddings
+3. **Access Filtering** - Results are filtered to collections you have access to
+4. **Ranking** - Results are ordered by similarity score (highest first)
+
+## Access Control
+
+- **Admins**: Search across all collections
+- **Clients**: Search only across collections they have access to
+
+## Errors
+
+| Status | Description |
+|--------|-------------|
+| 400 | Invalid request body |
+| 401 | Invalid authentication |
+| 500 | Embedding service unavailable |

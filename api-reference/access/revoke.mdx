@@ -1,0 +1,50 @@
+---
+title: "Revoke Access"
+api: "DELETE /api/access/clients/{client_profile_id}/collections/{collection_id}"
+description: "Revoke a client's access to a collection (admin only)"
+---
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token: `Bearer <admin_token>`
+</ParamField>
+
+## Path Parameters
+
+<ParamField path="client_profile_id" type="string" required>
+  The client's profile ID (UUID)
+</ParamField>
+
+<ParamField path="collection_id" type="string" required>
+  The collection ID (UUID)
+</ParamField>
+
+### Example Request
+
+```bash
+curl -X DELETE https://api.sari-platform.com/api/access/clients/client-uuid/collections/collection-uuid \
+  -H "Authorization: Bearer <admin_token>"
+```
+
+## Response
+
+```json
+{
+  "message": "Access revoked"
+}
+```
+
+## What Happens
+
+1. **Access Record Deleted** - Entry removed from `client_api_access` table
+2. **Cache Invalidated** - Client's collection list cache cleared
+3. **Immediate Effect** - Client can no longer access the collection
+
+## Errors
+
+| Status | Description |
+|--------|-------------|
+| 401 | Invalid or expired token |
+| 403 | Admin access required |
+| 404 | Client, collection, or access grant not found |

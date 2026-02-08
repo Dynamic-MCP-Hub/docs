@@ -1,0 +1,309 @@
+---
+title: "Deployment"
+description: "Deploy Sari Platform to Google Cloud Platform"
+---
+
+This document covers the deployment architecture and CI/CD pipelines for all Sari Platform components.
+
+## Deployment Overview
+
+| Component | Platform | Method |
+|-----------|----------|--------|
+| Admin Console | Firebase Hosting | GitHub Actions auto-deploy |
+| API Backend | Google Cloud Run | GitHub Actions auto-deploy |
+| MCP Server | Google Cloud Run | GitHub Actions auto-deploy |
+
+## Architecture
+
+```
+┌──────────────┐
+│    GitHub    │
+│  Repository  │
+└──────┬───────┘
+       │
+       │ Push to main
+       ▼
+┌──────────────┐
+│   GitHub     │
+│   Actions    │
+└──────┬───────┘
+       │
+       ├───────────────────┬───────────────────┐
+       ▼                   ▼                   ▼
+┌──────────────┐   ┌──────────────┐   ┌──────────────┐
+│   Firebase   │   │  Cloud Run   │   │  Cloud Run   │
+│   Hosting    │   │  (Backend)   │   │  (MCP)       │
+└──────────────┘   └──────────────┘   └──────────────┘
+
+Admin Console        API Backend         MCP Server
+```
+
+## Admin Console Deployment
+
+### Firebase Hosting Setup
+
+1. Initialize Firebase:
+```bash
+cd api-vault-guard
+firebase init hosting
+```
+
+2. Configure `firebase.json`:
+```json
+{
+  "hosting": {
+    "public": "dist",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
+```
+
+3. Build and deploy:
+```bash
+npm run build
+firebase deploy --only hosting
+```
+
+### GitHub Actions Workflow
+
+```yaml
+name: Deploy Admin Console
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'api-vault-guard/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install and Build
+        working-directory: api-vault-guard
+        run: |
+          npm ci
+          npm run build
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+
+      - name: Deploy to Firebase
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          channelId: live
+```
+
+---
+
+## API Backend Deployment
+
+### Cloud Run Configuration
+
+| Setting | Value |
+|---------|-------|
+| CPU | 1 vCPU |
+| Memory | 512 MiB |
+| Min instances | 0 |
+| Max instances | 10 |
+| Request timeout | 300s |
+| Concurrency | 80 |
+
+### Manual Deployment
+
+```bash
+cd mcp-backend
+
+# Build image
+gcloud builds submit --tag gcr.io/PROJECT_ID/mcp-backend
+
+# Deploy
+gcloud run deploy mcp-backend \
+  --image gcr.io/PROJECT_ID/mcp-backend \
+  --region me-central2 \
+  --platform managed \
+  --allow-unauthenticated \
+  --add-cloudsql-instances PROJECT:REGION:INSTANCE \
+  --set-env-vars "DB_NAME=sari_production,GCP_PROJECT_ID=PROJECT_ID" \
+  --set-secrets "db-password=db-password:latest"
+```
+
+---
+
+## Infrastructure Requirements
+
+### VPC Connector
+
+Required for Cloud Run to access Cloud SQL and Memorystore:
+
+```bash
+gcloud compute networks vpc-access connectors create sari-connector \
+  --region me-central2 \
+  --network default \
+  --range 10.8.0.0/28 \
+  --min-instances 2 \
+  --max-instances 10
+```
+
+### Cloud SQL
+
+```bash
+gcloud sql instances create sari-db \
+  --database-version POSTGRES_15 \
+  --tier db-f1-micro \
+  --region me-central2 \
+  --network default \
+  --no-assign-ip
+```
+
+### Cloud Memorystore (Redis)
+
+```bash
+gcloud redis instances create sari-cache \
+  --size 1 \
+  --region me-central2 \
+  --network default \
+  --redis-version redis_7_0
+```
+
+### Secret Manager
+
+```bash
+# Create secrets
+gcloud secrets create db-password --data-file=db-password.txt
+gcloud secrets create redis-auth --data-file=redis-auth.txt
+
+# Grant access
+gcloud secrets add-iam-policy-binding db-password \
+  --member="serviceAccount:xxx@xxx.iam.gserviceaccount.com" \
+  --role="roles/secretmanager.secretAccessor"
+```
+
+---
+
+## GitHub Secrets
+
+### GCP Authentication
+
+| Secret | Description |
+|--------|-------------|
+| `WIF_PROVIDER` | Workload Identity Federation provider |
+| `WIF_SERVICE_ACCOUNT` | Service account for deployments |
+| `GCP_PROJECT_ID` | Google Cloud project ID |
+
+### Database
+
+| Secret | Description |
+|--------|-------------|
+| `CLOUD_SQL_CONNECTION` | Cloud SQL connection name |
+| `DB_NAME` | Database name |
+| `DB_USER` | Database user |
+| `REDIS_HOST` | Redis/Memorystore IP |
+
+### Firebase
+
+| Secret | Description |
+|--------|-------------|
+| `FIREBASE_SERVICE_ACCOUNT` | Firebase service account JSON |
+| `FIREBASE_PROJECT_ID` | Firebase project ID |
+| `VITE_FIREBASE_API_KEY` | Firebase Web API key |
+| `VITE_API_URL` | Backend API URL |
+
+---
+
+## Workload Identity Federation
+
+For secure GitHub Actions authentication:
+
+```bash
+# Create workload identity pool
+gcloud iam workload-identity-pools create "github-pool" \
+  --location="global" \
+  --display-name="GitHub Actions Pool"
+
+# Create provider
+gcloud iam workload-identity-pools providers create-oidc "github-provider" \
+  --location="global" \
+  --workload-identity-pool="github-pool" \
+  --display-name="GitHub Provider" \
+  --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository" \
+  --issuer-uri="https://token.actions.githubusercontent.com"
+
+# Grant access
+gcloud iam service-accounts add-iam-policy-binding \
+  "deploy-sa@PROJECT_ID.iam.gserviceaccount.com" \
+  --role="roles/iam.workloadIdentityUser" \
+  --member="principalSet://iam.googleapis.com/projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/github-pool/attribute.repository/ORG/REPO"
+```
+
+---
+
+## Rollback Procedures
+
+### Cloud Run
+
+```bash
+# List revisions
+gcloud run revisions list --service mcp-backend --region me-central2
+
+# Rollback to specific revision
+gcloud run services update-traffic mcp-backend \
+  --region me-central2 \
+  --to-revisions mcp-backend-00005-abc=100
+```
+
+---
+
+## Monitoring
+
+### Cloud Run Metrics
+
+- Request count
+- Request latency (p50, p95, p99)
+- Container instance count
+- Memory utilization
+- CPU utilization
+
+### Alerts
+
+Set up alerts for:
+- Error rate > 1%
+- Latency p99 > 2s
+- Memory utilization > 80%
+- Instance count at max
+
+### Logging
+
+```bash
+# View logs
+gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=mcp-backend" --limit 100
+
+# Stream logs
+gcloud beta run services logs read mcp-backend --region me-central2 --tail
+```
+
+---
+
+## Health Checks
+
+| Service | Endpoint | Expected Response |
+|---------|----------|-------------------|
+| API Backend | `GET /health` | `{"status": "healthy"}` |
+| MCP Server | `GET /health` | `{"status": "healthy"}` |

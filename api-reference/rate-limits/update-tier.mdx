@@ -1,0 +1,66 @@
+---
+title: "Update Tier"
+api: "PUT /api/rate-limits/tiers/{tier}"
+description: "Update a rate limit tier (admin only)"
+---
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token: `Bearer <admin_token>`
+</ParamField>
+
+## Path Parameters
+
+<ParamField path="tier" type="string" required>
+  Tier name to update
+</ParamField>
+
+## Request Body
+
+<ParamField body="allowed_limit" type="integer">
+  Updated request limit
+</ParamField>
+
+<ParamField body="window_seconds" type="integer">
+  Updated time window
+</ParamField>
+
+<ParamField body="is_active" type="boolean">
+  Updated active status
+</ParamField>
+
+### Example Request
+
+```bash
+curl -X PUT https://api.sari-platform.com/api/rate-limits/tiers/client \
+  -H "Authorization: Bearer <admin_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "allowed_limit": 2000,
+    "is_active": true
+  }'
+```
+
+## Response
+
+Returns the updated tier configuration.
+
+```json
+{
+  "tier": "client",
+  "allowed_limit": 2000,
+  "window_seconds": 3600,
+  "is_active": true,
+  "updated_at": "2024-01-16T12:00:00Z"
+}
+```
+
+## Errors
+
+| Status | Description |
+|--------|-------------|
+| 400 | Invalid request body |
+| 401 | Invalid or expired token |
+| 403 | Admin access required |
+| 404 | Tier not found |

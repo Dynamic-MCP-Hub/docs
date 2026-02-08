@@ -1,0 +1,75 @@
+---
+title: "Create Audit Log"
+api: "POST /api/audit/"
+description: "Create an audit log entry"
+---
+
+## Authentication
+
+Supports both Firebase and API Key authentication.
+
+## Request Body
+
+<ParamField body="message" type="object" required>
+  Structured log data (JSONB)
+</ParamField>
+
+<ParamField body="timestamp" type="string">
+  ISO 8601 timestamp (defaults to now)
+</ParamField>
+
+### Example Request
+
+```bash
+curl -X POST https://api.sari-platform.com/api/audit/ \
+  -H "X-Client-ID: client_abc123" \
+  -H "X-API-Key: <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": {
+      "action": "api_call",
+      "collection_id": "collection-uuid",
+      "method": "GET",
+      "endpoint": "/users",
+      "status_code": 200,
+      "duration_ms": 150
+    },
+    "timestamp": "2024-01-15T10:00:00Z"
+  }'
+```
+
+## Response
+
+```json
+{
+  "id": "log-uuid",
+  "message": {
+    "action": "api_call",
+    "collection_id": "collection-uuid",
+    "method": "GET",
+    "endpoint": "/users",
+    "status_code": 200,
+    "duration_ms": 150
+  },
+  "timestamp": "2024-01-15T10:00:00Z"
+}
+```
+
+## Common Message Fields
+
+| Field | Description |
+|-------|-------------|
+| `action` | Type of action (api_call, login, etc.) |
+| `client_id` | Client identifier |
+| `collection_id` | Collection UUID |
+| `method` | HTTP method |
+| `endpoint` | API endpoint |
+| `status_code` | Response status |
+| `duration_ms` | Request duration |
+
+## Errors
+
+| Status | Description |
+|--------|-------------|
+| 400 | Invalid request body |
+| 401 | Invalid authentication |

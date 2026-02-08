@@ -1,0 +1,53 @@
+---
+title: "Grant Access"
+api: "POST /api/access/clients/{client_profile_id}/collections/{collection_id}"
+description: "Grant a client access to a collection (admin only)"
+---
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token: `Bearer <admin_token>`
+</ParamField>
+
+## Path Parameters
+
+<ParamField path="client_profile_id" type="string" required>
+  The client's profile ID (UUID)
+</ParamField>
+
+<ParamField path="collection_id" type="string" required>
+  The collection ID (UUID)
+</ParamField>
+
+### Example Request
+
+```bash
+curl -X POST https://api.sari-platform.com/api/access/clients/client-uuid/collections/collection-uuid \
+  -H "Authorization: Bearer <admin_token>"
+```
+
+## Response
+
+```json
+{
+  "message": "Access granted",
+  "client_id": "client-uuid",
+  "collection_id": "collection-uuid",
+  "granted_at": "2024-01-15T10:00:00Z"
+}
+```
+
+## What Happens
+
+1. **Access Record Created** - Entry added to `client_api_access` table
+2. **Cache Invalidated** - Client's collection list cache cleared
+
+## Errors
+
+| Status | Description |
+|--------|-------------|
+| 401 | Invalid or expired token |
+| 403 | Admin access required |
+| 404 | Client or collection not found |
+| 409 | Client already has access |

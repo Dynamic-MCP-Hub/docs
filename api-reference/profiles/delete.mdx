@@ -1,0 +1,54 @@
+---
+title: "Delete User"
+api: "DELETE /api/profiles/{user_id}"
+description: "Delete a user profile (admin only)"
+---
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token: `Bearer <admin_token>`
+</ParamField>
+
+<Note>
+  This endpoint requires admin privileges.
+</Note>
+
+## Path Parameters
+
+<ParamField path="user_id" type="string" required>
+  The user's profile ID (UUID)
+</ParamField>
+
+### Example Request
+
+```bash
+curl -X DELETE https://api.sari-platform.com/api/profiles/550e8400-e29b-41d4-a716-446655440000 \
+  -H "Authorization: Bearer <admin_token>"
+```
+
+## Response
+
+```json
+{
+  "message": "User deleted successfully"
+}
+```
+
+## What Happens
+
+1. **Profile Deleted** - User profile removed from database
+2. **Access Revoked** - All collection access grants removed (cascade)
+3. **Firebase Mapping** - Firebase UID mapping removed
+
+<Warning>
+  This action is irreversible. The user will need to register again.
+</Warning>
+
+## Errors
+
+| Status | Description |
+|--------|-------------|
+| 401 | Invalid or expired token |
+| 403 | Admin access required |
+| 404 | User not found |

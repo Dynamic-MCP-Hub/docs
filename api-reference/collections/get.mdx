@@ -1,0 +1,93 @@
+---
+title: "Get Collection"
+api: "GET /api/collections/{collection_id}"
+description: "Get a specific collection with its OpenAPI spec"
+---
+
+## Authentication
+
+Supports both Firebase and API Key authentication:
+
+<ParamField header="Authorization" type="string">
+  Bearer token: `Bearer <firebase_id_token>`
+</ParamField>
+
+**OR**
+
+<ParamField header="X-Client-ID" type="string">
+  Client identifier
+</ParamField>
+
+<ParamField header="X-API-Key" type="string">
+  Client secret
+</ParamField>
+
+## Path Parameters
+
+<ParamField path="collection_id" type="string" required>
+  Collection ID (UUID)
+</ParamField>
+
+### Example Request
+
+```bash
+curl https://api.sari-platform.com/api/collections/550e8400-e29b-41d4-a716-446655440000 \
+  -H "Authorization: Bearer <token>"
+```
+
+## Response
+
+<ResponseField name="id" type="string">
+  Collection ID
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Collection name
+</ResponseField>
+
+<ResponseField name="description" type="string">
+  Collection description
+</ResponseField>
+
+<ResponseField name="openapi_spec" type="object">
+  Full OpenAPI 3.0 specification
+</ResponseField>
+
+<ResponseField name="created_by" type="string">
+  Creator's profile ID
+</ResponseField>
+
+<ResponseField name="created_at" type="string">
+  Creation timestamp
+</ResponseField>
+
+### Example Response
+
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "name": "Stripe Payment API",
+  "description": "Payment processing API",
+  "openapi_spec": {
+    "openapi": "3.0.0",
+    "info": {
+      "title": "Stripe Payment API",
+      "version": "1.0.0"
+    },
+    "servers": [
+      {"url": "https://api.stripe.com"}
+    ],
+    "paths": { ... }
+  },
+  "created_by": "admin-uuid",
+  "created_at": "2024-01-10T08:00:00Z"
+}
+```
+
+## Errors
+
+| Status | Description |
+|--------|-------------|
+| 401 | Invalid authentication |
+| 403 | No access to this collection |
+| 404 | Collection not found |

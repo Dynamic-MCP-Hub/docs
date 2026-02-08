@@ -1,33 +1,118 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: "API Reference"
+description: "Complete REST API reference for the Sari Platform"
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+## Base URL
 
-## Welcome
-
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
-
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+```
+Production: https://mcp-backend-[hash].me-central2.run.app
+Local: http://localhost:8080
+```
 
 ## Authentication
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+The Sari API supports two authentication methods:
 
+<CardGroup cols={2}>
+  <Card title="Firebase Token" icon="fire">
+    For Admin Console and web users
+    ```
+    Authorization: Bearer <firebase_id_token>
+    ```
+  </Card>
+  <Card title="API Key" icon="key">
+    For AI agents and MCP Server
+    ```
+    X-Client-ID: client_abc123
+    X-API-Key: <client_secret>
+    ```
+  </Card>
+</CardGroup>
+
+## API Endpoints
+
+### Profiles
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/profiles/register` | Register new user |
+| GET | `/api/profiles/me` | Get current profile |
+| PUT | `/api/profiles/me` | Update current profile |
+| GET | `/api/profiles/` | List all profiles (admin) |
+| POST | `/api/profiles/{id}/approve` | Approve registration (admin) |
+| POST | `/api/profiles/{id}/reject` | Reject registration (admin) |
+| DELETE | `/api/profiles/{id}` | Delete user (admin) |
+
+### Collections
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/collections/` | List collections |
+| GET | `/api/collections/{id}` | Get collection details |
+| POST | `/api/collections/` | Create collection (admin) |
+| PUT | `/api/collections/{id}` | Update collection (admin) |
+| DELETE | `/api/collections/{id}` | Delete collection (admin) |
+| GET | `/api/collections/{id}/metadata` | Get runtime metadata |
+
+### Access Control
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/access/clients/{id}/collections` | List client's access |
+| POST | `/api/access/clients/{id}/collections/{cid}` | Grant access |
+| DELETE | `/api/access/clients/{id}/collections/{cid}` | Revoke access |
+| GET | `/api/access/collections/{id}/clients` | List collection's clients |
+
+### Audit
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/audit/` | List audit logs (admin) |
+| POST | `/api/audit/` | Create audit entry |
+
+### Rate Limits
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/rate-limits/tiers` | List all tiers |
+| GET | `/api/rate-limits/tiers/active/all` | Get active tiers |
+| POST | `/api/rate-limits/tiers` | Create tier (admin) |
+| PUT | `/api/rate-limits/tiers/{tier}` | Update tier (admin) |
+| DELETE | `/api/rate-limits/tiers/{tier}` | Delete tier (admin) |
+| GET | `/api/rate-limits/overrides` | List overrides (admin) |
+| POST | `/api/rate-limits/overrides` | Create override (admin) |
+| GET | `/api/rate-limits/effective/{client_id}` | Get effective limit |
+
+### Vector Search
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/vector/search` | Semantic search |
+| GET | `/api/vector/health` | Health check |
+
+## Error Responses
+
+| Status | Meaning | Example |
+|--------|---------|---------|
+| 400 | Bad Request | `{"detail": "Invalid request body"}` |
+| 401 | Unauthorized | `{"detail": "Token expired"}` |
+| 403 | Forbidden | `{"detail": "Admin access required"}` |
+| 404 | Not Found | `{"detail": "Collection not found"}` |
+| 409 | Conflict | `{"detail": "Already exists"}` |
+| 429 | Rate Limited | `{"detail": "Rate limit exceeded", "retry_after": 3600}` |
+| 500 | Server Error | `{"detail": "Internal server error"}` |
+
+## Health Check
+
+```http
+GET /health
+```
+
+**Response:**
 ```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
+{
+  "status": "healthy",
+  "service": "mcp-backend"
+}
 ```

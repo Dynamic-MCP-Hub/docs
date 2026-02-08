@@ -1,0 +1,55 @@
+---
+title: "List Collection's Clients"
+api: "GET /api/access/collections/{collection_id}/clients"
+description: "List all clients with access to a collection (admin only)"
+---
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token: `Bearer <admin_token>`
+</ParamField>
+
+## Path Parameters
+
+<ParamField path="collection_id" type="string" required>
+  The collection ID (UUID)
+</ParamField>
+
+### Example Request
+
+```bash
+curl https://api.sari-platform.com/api/access/collections/550e8400-e29b-41d4-a716-446655440000/clients \
+  -H "Authorization: Bearer <admin_token>"
+```
+
+## Response
+
+Returns all clients with access to the specified collection.
+
+```json
+[
+  {
+    "client_id": "client-uuid-1",
+    "email": "user@example.com",
+    "full_name": "John Doe",
+    "company_name": "Acme Corp",
+    "granted_at": "2024-01-15T10:00:00Z"
+  },
+  {
+    "client_id": "client-uuid-2",
+    "email": "jane@company.com",
+    "full_name": "Jane Smith",
+    "company_name": "Tech Inc",
+    "granted_at": "2024-01-16T14:00:00Z"
+  }
+]
+```
+
+## Errors
+
+| Status | Description |
+|--------|-------------|
+| 401 | Invalid or expired token |
+| 403 | Admin access required |
+| 404 | Collection not found |
